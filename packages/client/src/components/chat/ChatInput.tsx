@@ -1,28 +1,32 @@
-import { Button } from './ui/button';
-import { FaArrowUp } from 'react-icons/fa';
 import { useForm } from 'react-hook-form';
+import { FaArrowUp } from 'react-icons/fa';
+import { Button } from '../ui/button';
 
-type FormData = { prompt: string };
+export type ChatFormData = { prompt: string };
 
-const Chatbot = () => {
-  const { register, handleSubmit, reset, formState } = useForm<FormData>();
+type Props = {
+  onSubmit: (data: ChatFormData) => void;
+};
 
-  const onSubmit = (data: FormData) => {
-    console.log(data);
-    reset();
-  };
+export const ChatInput = ({ onSubmit }: Props) => {
+  const { register, handleSubmit, reset, formState } = useForm<ChatFormData>();
 
-  const onKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
-      handleSubmit(onSubmit)();
       e.preventDefault();
+      submit();
     }
   };
 
+  const submit = handleSubmit((data) => {
+    reset({ prompt: '' });
+    onSubmit(data);
+  });
+
   return (
     <form
-      onSubmit={handleSubmit(onSubmit)}
-      onKeyDown={onKeyDown}
+      onSubmit={submit}
+      onKeyDown={handleKeyDown}
       className="flex flex-col gap-2 items-end border-2 p-4 rounded-3xl"
     >
       <textarea
@@ -33,6 +37,7 @@ const Chatbot = () => {
         className="w-full border-0 focus:outline-0 resize-none"
         placeholder="Ask anything"
         maxLength={1000}
+        autoFocus
       />
       <Button
         disabled={!formState.isValid}
@@ -44,5 +49,3 @@ const Chatbot = () => {
     </form>
   );
 };
-
-export default Chatbot;
