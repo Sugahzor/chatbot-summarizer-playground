@@ -1,8 +1,12 @@
 import OpenAI from 'openai';
+import { InferenceClient } from '@huggingface/inference';
+import template from '../llm/prompts/hf-summarize-reviews.txt';
 
-const client = new OpenAI({
+const openAIClient = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || '',
 });
+
+const inferenceClient = new InferenceClient(process.env.HF_TOKEN);
 
 type GenerateTextOptions = {
   model?: string;
@@ -18,6 +22,10 @@ type GenerateTextResult = {
   id: string;
 };
 
+type SummarizeTextResult = {
+  summary: string;
+};
+
 export const llmClient = {
   async generateText({
     model = 'gpt-4.1',
@@ -27,7 +35,7 @@ export const llmClient = {
     instructions,
     previousResponseId,
   }: GenerateTextOptions): Promise<GenerateTextResult> {
-    const response = await client.responses.create({
+    const response = await openAIClient.responses.create({
       model,
       instructions,
       input: prompt,
@@ -39,5 +47,35 @@ export const llmClient = {
       text: response.output_text,
       id: response.id,
     };
+  },
+
+  async summerize(text: string): Promise<SummarizeTextResult> {
+    const output = await inferenceClient.summarization({
+      model: 'facebook/bart-large-cnn',
+      inputs: text,
+      provider: 'hf-inference',
+    });
+    return {
+      summary: Array.isArray(output)
+        ? output[0].summary_text
+        : output.summary_text,
+    };
+  },
+
+  async summerizeReviews(reviews: string) {
+    const chatCompletion = await inferenceClient.chatCompletion({
+      model: 'meta-llama/Llama-3.1-8B-Instruct:novita',
+      messages: [
+        {
+          role: 'system',
+          content: template,
+        },
+        {
+          role: 'user',
+          content: reviews,
+        },
+      ],
+    });
+    return chatCompletion?.choices[0]?.message.content || '';
   },
 };
