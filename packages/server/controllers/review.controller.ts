@@ -17,9 +17,10 @@ export const reviewController = {
       return;
     }
 
-    const reviews = await reviewService.getReviews(productId);
+    const reviews = await reviewRepository.getReviews(productId);
+    const summary = await reviewRepository.getReviewSummary(productId);
 
-    res.json(reviews);
+    res.json({ reviews, summary });
   },
 
   async summarizeReviews(req: Request, res: Response) {
