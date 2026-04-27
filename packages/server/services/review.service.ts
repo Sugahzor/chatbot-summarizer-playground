@@ -25,9 +25,9 @@ export const reviewService = {
     //   maxTokens: 500,
     // });
 
-    // const { summary } = await llmClient.summerize(joinedReviews);
+    // const { summary } = await llmClient.summarize(joinedReviews);
 
-    const summary = await llmClient.summerizeReviews(joinedReviews);
+    const summary = await llmClient.summarizeReviews(joinedReviews);
 
     await reviewRepository.storeReviewSummary(productId, summary);
 

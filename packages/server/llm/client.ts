@@ -49,7 +49,7 @@ export const llmClient = {
     };
   },
 
-  async summerize(text: string): Promise<SummarizeTextResult> {
+  async summarize(text: string): Promise<SummarizeTextResult> {
     const output = await inferenceClient.summarization({
       model: 'facebook/bart-large-cnn',
       inputs: text,
@@ -62,7 +62,7 @@ export const llmClient = {
     };
   },
 
-  async summerizeReviews(reviews: string) {
+  async summarizeReviews(reviews: string) {
     const chatCompletion = await inferenceClient.chatCompletion({
       model: 'meta-llama/Llama-3.1-8B-Instruct:novita',
       messages: [
