@@ -1,6 +1,6 @@
 # chatbot-summarizer-playground
 
-A small playground app that combines an OpenAI-powered chatbot with two Hugging Face summarization flows. Built as a Bun monorepo with a React client and an Express server.
+A small playground app that combines an OpenAI-powered chatbot, two Hugging Face summarization flows, and a multi-role CV screening tool built on RAG. Built as a Bun monorepo with a React client and an Express server.
 
 ## Stack
 
@@ -22,6 +22,9 @@ chatbot-summarizer-playground/
 │       ├── llm/
 │       │   ├── client.ts        # unified LLM client (OpenAI + HF)
 │       │   └── prompts/         # prompt templates (.txt / .md)
+│       ├── rag/
+│       │   ├── jobs/            # role-specific job criteria (one .md per role)
+│       │   └── vector-store.ts  # in-memory embeddings + cosine search
 │       ├── prisma/              # schema + migrations
 │       └── routes.ts            # Express router
 ├── package.json                 # workspace root
@@ -121,6 +124,14 @@ Summarizes a batch of product reviews using a chat-completion model with a custo
 
 Used by `POST /api/products/:id/reviews/summarize`.
 
+## CV screening (RAG)
+
+A retrieval-augmented screening tool that matches uploaded PDF CVs against role-specific job criteria. HR picks a role, drops in up to 20 PDFs, and gets back per-CV verdicts (score, strengths, gaps, recommendation).
+
+**How it works:** at startup, each `.md` file in `packages/server/rag/jobs/` is split into chunks and embedded into an in-memory vector store, tagged by role. At upload time each CV is parsed (via `unpdf`), embedded, and matched against the chunks for the selected role using cosine similarity. The top matches are passed to the LLM as context for the screening verdict.
+
+For the full file format, indexing rules, and instructions on adding or editing roles, see the **[Job criteria files section in the server README](./packages/server/README.md#cv-screening--job-criteria-files)**.
+
 ## API endpoints
 
 | Method | Path                                  | Description                                 |
@@ -130,6 +141,8 @@ Used by `POST /api/products/:id/reviews/summarize`.
 | POST   | `/api/chat`                           | Send a chat message (uses `generateText`)   |
 | GET    | `/api/products/:id/reviews`           | List product reviews                        |
 | POST   | `/api/products/:id/reviews/summarize` | Summarize reviews (uses `summarizeReviews`) |
+| GET    | `/api/jobs/roles`                     | List available roles for CV screening       |
+| POST   | `/api/screen-cvs`                     | Screen one or more CVs against a role (RAG) |
 
 ## Notes
 
